@@ -1,0 +1,15 @@
+.program phase
+.define public PIN_COUNT 1
+.define public CHANNELS_PER_PIN 16
+.define public LOG_BITS_PER_CYCLE 4
+.side_set 1
+.wrap_target
+    mov X, ~null side 0b0                       ; Fill X with all ones                      |  All this is doing is
+    in X LOG_BITS_PER_CYCLE side 0b0            ; Shift into the ISR 1 to set the counter   |  setting up the counter
+    in null (32 - LOG_BITS_PER_CYCLE) side 0b0  ; Shift in the remaining bits with 0        |  to count down from in 
+    mov X, isr side 0b0                         ; Move the value back to X                  |  the loop.
+    wait 1 gpio 16 side 0b0                      ; Wait until the RCLK goes high before starting again
+ne:
+    out pins, PIN_COUNT  side 0b0               ; Pump out the serial data
+    jmp X-- ne side 0b1                         ; If the OSR isn't empty, keep clocking those bits out
+    
